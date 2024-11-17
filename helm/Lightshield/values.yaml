@@ -1,0 +1,59 @@
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "postgres"
+
+  primary:
+    persistence:
+      enabled: true
+      storageClass: ""  # Use the default storage class, or specify one if needed
+      size: 10Gi
+
+    initdb:
+      scriptsConfigMap: "postgresql-init-scripts"
+
+    extraEnvVars:
+      - name: AIRFLOW_DB_PASSWORD
+        value: "airflow"
+
+  service:
+    type: ClusterIP  # Only accessible within the cluster
+    port: 5432        # Standard PostgreSQL port
+
+
+airflow:
+  postgresql:
+    ## to use the external db, the embedded one must be disabled
+    enabled: false
+
+  ## for full list of PgBouncer configs, see values.yaml
+  pgbouncer:
+    enabled: false
+
+  externalDatabase:
+    type: postgres
+    host: lightshield-postgresql
+    port: 5432
+    ## the schema which will contain the airflow tables
+    database: airflow
+
+    ## (username - option 1) a plain-text helm value
+    user: airflow
+
+    ## (password - option 2) a Kubernetes secret in your airflow namespace
+    passwordSecret: "airflow-user-password-secret"
+    passwordSecretKey: "password"
+
+  dags:
+    ## NOTE: this is the default value
+    path: /opt/airflow/dags
+
+    gitSync:
+      enabled: true
+
+      ## Defaults to official
+      repo: "git@github.com:DoctressWasTaken/Lightshield.git"
+      branch: "master"
+      revision: "HEAD"
+
+      repoSubPath: "dags"

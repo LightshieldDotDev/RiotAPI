@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgresql-init-scripts
+  namespace: {{ .Release.Namespace }}
+data:
+  init.sh: |
+    echo "{{ .Values.secrets.airflow.value }}"
+    echo "Hello World"
+
+  init_airflow.sql: |
+    CREATE USER airflow WITH PASSWORD '{{ .Values.secrets.airflow.value }}';
+    CREATE DATABASE airflow  OWNER airflow;
+
+    GRANT ALL PRIVILEGES ON DATABASE airflow TO airflow;
+    GRANT USAGE ON SCHEMA airflow.public TO airflow;
+    GRANT CREATE ON SCHEMA airflow.public TO airflow;
+
+    ALTER DEFAULT PRIVILEGES FOR ROLE airflow IN SCHEMA airflow.public GRANT ALL ON TABLES TO airflow;
+    ALTER DEFAULT PRIVILEGES FOR ROLE airflow IN SCHEMA airflow.public GRANT ALL ON SEQUENCES TO airflow;
+    ALTER DEFAULT PRIVILEGES FOR ROLE airflow IN SCHEMA airflow.public GRANT ALL ON FUNCTIONS TO airflow;
